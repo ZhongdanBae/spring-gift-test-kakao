@@ -417,6 +417,7 @@ Category → Product → Option → Gift
 | **패턴 적용** | Given-When-Then, Nested 구조 일관성 유지 |
 | **자동 수정** | 실패 원인 분석 및 수정 자동화 |
 | **문서화** | 테스트 전략, 사용 방법 문서 자동 생성 |
+| **인프라 구축** | Dockerfile, Docker Compose, Cucumber BDD 자동 설정 |
 
 ### 스킬 기반 자동화의 이점
 
@@ -424,3 +425,50 @@ Category → Product → Option → Gift
 2. **일관성**: 동일한 형식의 결과 출력
 3. **효율성**: 복잡한 명령어를 간단한 슬래시 명령으로 실행
 4. **학습 곡선 감소**: 프로젝트 특화 워크플로우 캡슐화
+
+---
+
+## 8. Step 2: 인수 테스트 체계 고도화
+
+### 8.1 Autopilot 워크플로우
+
+```
+Phase 0: Expansion (요구사항 분석)
+  ├── Analyst: 요구사항 추출
+  ├── Architect: 기술 명세 작성
+  └── Explorer: 코드베이스 분석
+
+Phase 1: Planning (구현 계획)
+Phase 2: Execution (3단계 구현)
+  ├── Step 1: Cucumber BDD (Korean Gherkin + RestAssured)
+  ├── Step 2: Docker Compose PostgreSQL
+  └── Step 3: Application Containerization
+Phase 3: QA (빌드 + 테스트 검증)
+Phase 4: Validation (아키텍트/보안/코드 리뷰)
+```
+
+### 8.2 단계적 커밋 전략
+
+| 커밋 | 내용 | 검증 |
+|------|------|------|
+| `feat: Cucumber BDD 테스트 추가` | Korean Gherkin + RestAssured + Testcontainers | 7 시나리오 통과 |
+| `feat: Docker Compose PostgreSQL 통합` | docker-compose.yml + cucumber 프로필 | 7 시나리오 통과 |
+| `feat: 애플리케이션 컨테이너화` | Multi-stage Dockerfile + E2E 테스트 | 7 시나리오 통과 |
+
+### 8.3 AI 프롬프트
+
+```
+/autopilot
+1. 단계적 커밋을 할 것
+2. 로컬도 container도 모두 postgres로 진행할 것
+3. 완전한 컨테이너화 한 후 검증까지 마칠 것
+```
+
+### 8.4 기술 스택 추가
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Cucumber | 7.22.0 | BDD 테스트 프레임워크 |
+| RestAssured | (Spring Boot managed) | HTTP API 테스트 |
+| Docker Compose | 5.0.2 | 컨테이너 오케스트레이션 |
+| Spring Boot Actuator | (Spring Boot managed) | 컨테이너 헬스체크 |

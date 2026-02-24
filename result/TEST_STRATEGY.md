@@ -243,10 +243,66 @@ class GiftDecreasesStock { ... }
 
 ## 8. 최종 테스트 현황
 
-| 구분 | 테스트 수 | 상태 |
-|------|----------|------|
-| 단위 테스트 (OptionTest) | 7개 | ✅ 통과 |
-| 인수 테스트 (GiftAcceptanceTest) | 10개 | ✅ 통과 |
-| **총 테스트** | **17개** | ✅ 전체 통과 |
+| 구분 | 테스트 수 | 실행 방법 | 상태 |
+|------|----------|-----------|------|
+| 단위 테스트 (OptionTest) | 7개 | `./gradlew test` | ✅ 통과 |
+| 인수 테스트 (GiftAcceptanceTest) | 10개 | `./gradlew test` | ✅ 통과 |
+| Cucumber BDD (gift.feature) | 7개 | `./gradlew cucumberTest` | ✅ 통과 |
+| **총 테스트** | **24개** | `./gradlew test cucumberTest` | ✅ 전체 통과 |
 
 ### 최종 점수: 9/10 (합격)
+
+---
+
+## 9. Cucumber BDD 테스트 체계
+
+### 9.1 아키텍처
+
+```
+┌──────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  Test JVM    │     │  App Container   │     │  PostgreSQL      │
+│  (Cucumber)  │────▶│  (port 28080)    │────▶│  (port 15432)    │
+│  RestAssured │     │  Spring Boot     │     │  postgres:16     │
+│  JdbcTemplate│─────┼──────────────────┼────▶│                  │
+└──────────────┘     └──────────────────┘     └──────────────────┘
+   HTTP 요청 ─────▶      /api/gifts              DB (공유)
+   DB 직접 접근 ────────────────────────────▶  TRUNCATE/INSERT/SELECT
+```
+
+### 9.2 Korean Gherkin 시나리오
+
+```gherkin
+# language: ko
+기능: 선물하기
+
+  시나리오: 선물하면 재고가 감소한다
+    조건 재고가 10인 옵션이 존재한다
+    만일 3개를 선물한다
+    그러면 응답 상태코드는 200이다
+    그리고 재고는 7이다
+```
+
+### 9.3 실행 명령어
+
+```bash
+./gradlew test              # 17개 JUnit 테스트 (Testcontainers)
+./gradlew cucumberTest      # 7개 Cucumber 시나리오 (Docker Compose + 컨테이너화된 앱)
+./gradlew test cucumberTest # 전체 24개 테스트
+```
+
+### 9.4 Docker Compose 구성
+
+| 서비스 | 이미지 | 포트 | 용도 |
+|--------|--------|------|------|
+| postgres | postgres:16-alpine | 15432 | 테스트 데이터베이스 |
+| app | Dockerfile (multi-stage) | 28080 | 컨테이너화된 Spring Boot |
+
+### 9.5 주요 설계 결정
+
+| 결정 | 선택 | 이유 |
+|------|------|------|
+| HTTP 클라이언트 | RestAssured | @SpringBootTest가 다른 클래스에 있어도 독립 동작 |
+| DB 검증 | JdbcTemplate | Hibernate 캐시 우회, 컨테이너와 별도 세션 |
+| 테스트 격리 | TRUNCATE CASCADE | 시나리오 간 데이터 독립 보장 |
+| 앱 실행 환경 | webEnvironment=NONE | 앱은 Docker 컨테이너에서 실행 |
+| 프로필 | cucumber | 기존 JUnit 테스트와 설정 분리 |
