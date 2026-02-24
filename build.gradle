@@ -7,6 +7,10 @@ plugins {
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
+ext {
+	cucumberVersion = '7.22.0'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -25,10 +29,42 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testImplementation 'org.testcontainers:postgresql'
+
+	// Cucumber BDD
+	testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+	testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
+	testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+	testImplementation 'org.junit.platform:junit-platform-suite'
+
+	// RestAssured for Cucumber HTTP tests
+	testImplementation 'io.rest-assured:rest-assured'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+
+	// Cucumber 엔진이 test 태스크에서 실행되지 않도록 제외
+	exclude '**/cucumber/**'
+
+	// Colima Docker 소켓 자동 감지 (macOS)
+	def colimaSocket = file("${System.getProperty('user.home')}/.colima/default/docker.sock")
+	if (colimaSocket.exists() && !System.getenv('DOCKER_HOST')) {
+		environment 'DOCKER_HOST', "unix://${colimaSocket.absolutePath}"
+		environment 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', '/var/run/docker.sock'
+	}
+}
+
+// Cucumber BDD 테스트 태스크
+tasks.register('cucumberTest', Test) {
+	description = 'Cucumber BDD 테스트 실행'
+	group = 'verification'
+
+	useJUnitPlatform()
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+
+	// Cucumber Suite 클래스만 포함
+	include '**/cucumber/CucumberSuiteTest.class'
 
 	// Colima Docker 소켓 자동 감지 (macOS)
 	def colimaSocket = file("${System.getProperty('user.home')}/.colima/default/docker.sock")
