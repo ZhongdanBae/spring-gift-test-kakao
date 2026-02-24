@@ -14,3 +14,29 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gift-test-app
+    ports:
+      - "28080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/gift_test
+      DB_USERNAME: gift
+      DB_PASSWORD: gift
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      KAKAO_MESSAGE_TOKEN: test-token
+      KAKAO_MESSAGE_URL: https://kapi.kakao.com/v1/api/talk
+      KAKAO_SOCIAL_TOKEN: test-token
+      KAKAO_SOCIAL_URL: https://kapi.kakao.com/v1/api/talk
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s

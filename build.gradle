@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -64,9 +65,20 @@ def colimaDockerHost = {
 }
 
 // Docker Compose 태스크
+tasks.register('dockerBuild', Exec) {
+	description = 'Docker 이미지 빌드'
+	group = 'docker'
+	commandLine 'docker', 'compose', 'build'
+	def dockerHost = colimaDockerHost()
+	if (dockerHost) {
+		environment 'DOCKER_HOST', dockerHost
+	}
+}
+
 tasks.register('dockerUp', Exec) {
 	description = 'Docker Compose 서비스 시작'
 	group = 'docker'
+	dependsOn 'dockerBuild'
 	commandLine 'docker', 'compose', 'up', '-d', '--wait'
 	def dockerHost = colimaDockerHost()
 	if (dockerHost) {
