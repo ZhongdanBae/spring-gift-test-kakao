@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gift-test-postgres
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_DB: gift_test
+      POSTGRES_USER: gift
+      POSTGRES_PASSWORD: gift
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "gift", "-d", "gift_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 5s

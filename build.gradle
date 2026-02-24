@@ -54,10 +54,43 @@ tasks.named('test') {
 	}
 }
 
-// Cucumber BDD 테스트 태스크
+// Colima Docker 소켓 자동 감지 헬퍼
+def colimaDockerHost = {
+	def colimaSocket = file("${System.getProperty('user.home')}/.colima/default/docker.sock")
+	if (colimaSocket.exists() && !System.getenv('DOCKER_HOST')) {
+		return "unix://${colimaSocket.absolutePath}"
+	}
+	return null
+}
+
+// Docker Compose 태스크
+tasks.register('dockerUp', Exec) {
+	description = 'Docker Compose 서비스 시작'
+	group = 'docker'
+	commandLine 'docker', 'compose', 'up', '-d', '--wait'
+	def dockerHost = colimaDockerHost()
+	if (dockerHost) {
+		environment 'DOCKER_HOST', dockerHost
+	}
+}
+
+tasks.register('dockerDown', Exec) {
+	description = 'Docker Compose 서비스 중지'
+	group = 'docker'
+	commandLine 'docker', 'compose', 'down', '-v'
+	def dockerHost = colimaDockerHost()
+	if (dockerHost) {
+		environment 'DOCKER_HOST', dockerHost
+	}
+}
+
+// Cucumber BDD 테스트 태스크 (Docker Compose PostgreSQL 사용)
 tasks.register('cucumberTest', Test) {
 	description = 'Cucumber BDD 테스트 실행'
 	group = 'verification'
+
+	dependsOn 'dockerUp'
+	finalizedBy 'dockerDown'
 
 	useJUnitPlatform()
 	testClassesDirs = sourceSets.test.output.classesDirs
@@ -66,10 +99,6 @@ tasks.register('cucumberTest', Test) {
 	// Cucumber Suite 클래스만 포함
 	include '**/cucumber/CucumberSuiteTest.class'
 
-	// Colima Docker 소켓 자동 감지 (macOS)
-	def colimaSocket = file("${System.getProperty('user.home')}/.colima/default/docker.sock")
-	if (colimaSocket.exists() && !System.getenv('DOCKER_HOST')) {
-		environment 'DOCKER_HOST', "unix://${colimaSocket.absolutePath}"
-		environment 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', '/var/run/docker.sock'
-	}
+	// cucumber 프로필 활성화
+	systemProperty 'spring.profiles.active', 'cucumber'
 }
