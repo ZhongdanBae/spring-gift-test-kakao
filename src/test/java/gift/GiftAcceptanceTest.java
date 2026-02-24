@@ -63,6 +63,7 @@ class GiftAcceptanceTest {
 
     @BeforeEach
     void setUp() {
+        // 새 엔티티 추가 시 이 목록도 업데이트 필요 (JPA 엔티티: Wish, Option, Product, Category, Member)
         jdbcTemplate.execute("TRUNCATE TABLE wish, option, product, category, member RESTART IDENTITY CASCADE");
         baseUrl = "http://localhost:" + port + "/api";
         sender = memberRepository.save(new Member("보내는사람", "sender@test.com"));

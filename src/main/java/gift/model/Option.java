@@ -36,7 +36,7 @@ public class Option {
             throw new IllegalArgumentException("수량은 0 이상이어야 합니다");
         }
         if (this.quantity < quantity) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("재고가 부족합니다. 현재 재고: " + this.quantity + ", 요청 수량: " + quantity);
         }
         this.quantity -= quantity;
     }
