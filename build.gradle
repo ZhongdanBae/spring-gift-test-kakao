@@ -29,4 +29,11 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+
+	// Colima Docker 소켓 자동 감지 (macOS)
+	def colimaSocket = file("${System.getProperty('user.home')}/.colima/default/docker.sock")
+	if (colimaSocket.exists() && !System.getenv('DOCKER_HOST')) {
+		environment 'DOCKER_HOST', "unix://${colimaSocket.absolutePath}"
+		environment 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', '/var/run/docker.sock'
+	}
 }
