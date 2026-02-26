@@ -16,6 +16,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GiftStepDefinitions {
 
     @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private OptionRepository optionRepository;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private Long senderId;
@@ -27,7 +39,6 @@ public class GiftStepDefinitions {
     public void setUp() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = 28080;
-        // 새 엔티티 추가 시 이 목록도 업데이트 필요 (JPA 엔티티: Wish, Option, Product, Category, Member)
         jdbcTemplate.execute(
                 "TRUNCATE TABLE wish, option, product, category, member RESTART IDENTITY CASCADE"
         );
@@ -35,32 +46,21 @@ public class GiftStepDefinitions {
 
     @조건("회원 {string}이 존재한다")
     public void 회원이_존재한다(String name) {
-        String email = name + "@test.com";
-        jdbcTemplate.update("INSERT INTO member (name, email) VALUES (?, ?)", name, email);
-        Long id = jdbcTemplate.queryForObject(
-                "SELECT id FROM member WHERE email = ?", Long.class, email);
+        Member member = memberRepository.save(new Member(name, name + "@test.com"));
         if ("보내는사람".equals(name)) {
-            senderId = id;
+            senderId = member.getId();
         } else {
-            receiverId = id;
+            receiverId = member.getId();
         }
     }
 
     @조건("재고가 {int}인 옵션이 존재한다")
     public void 재고가_n인_옵션이_존재한다(int stock) {
-        jdbcTemplate.update("INSERT INTO category (name) VALUES (?)", "테스트 카테고리");
-        Long categoryId = jdbcTemplate.queryForObject(
-                "SELECT id FROM category WHERE name = ?", Long.class, "테스트 카테고리");
-        jdbcTemplate.update(
-                "INSERT INTO product (name, price, image_url, category_id) VALUES (?, ?, ?, ?)",
-                "테스트 상품", 10000, "http://test.jpg", categoryId);
-        Long productId = jdbcTemplate.queryForObject(
-                "SELECT id FROM product WHERE name = ?", Long.class, "테스트 상품");
-        jdbcTemplate.update(
-                "INSERT INTO option (name, quantity, product_id) VALUES (?, ?, ?)",
-                "테스트 옵션", stock, productId);
-        currentOptionId = jdbcTemplate.queryForObject(
-                "SELECT id FROM option WHERE product_id = ?", Long.class, productId);
+        Category category = categoryRepository.save(new Category("테스트 카테고리"));
+        Product product = productRepository.save(
+                new Product("테스트 상품", 10000, "http://test.jpg", category));
+        Option option = optionRepository.save(new Option("테스트 옵션", stock, product));
+        currentOptionId = option.getId();
     }
 
     @만일("{int}개를 선물한다")
@@ -104,7 +104,7 @@ public class GiftStepDefinitions {
 
     @그러면("재고는 {int}이다")
     public void 재고는_n이다(int expectedStock) {
-        // JdbcTemplate으로 직접 조회 (Hibernate 캐시 우회)
+        // 앱 컨테이너(별도 JVM)가 변경한 DB 상태를 직접 조회
         Integer actual = jdbcTemplate.queryForObject(
                 "SELECT quantity FROM option WHERE id = ?", Integer.class, currentOptionId);
         assertThat(actual).isEqualTo(expectedStock);
