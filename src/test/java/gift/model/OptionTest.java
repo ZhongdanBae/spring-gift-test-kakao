@@ -7,6 +7,18 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Option 도메인 단위 테스트
+ *
+ * 검증하는 핵심 행위:
+ * 1. 재고 감소 - 정상 케이스
+ * 2. 재고 감소 - 경계값 (stock == quantity)
+ * 3. 재고 감소 - 재고 부족 시 예외
+ * 4. 재고 감소 - 재고 0에서 감소 시도
+ * 5. 재고 감소 - 수량 0 입력
+ * 6. 재고 감소 - 최소 단위 (수량 1)
+ * 7. 재고 감소 - 음수 입력 시 예외
+ */
 @DisplayName("Option 도메인")
 class OptionTest {
 
@@ -15,11 +27,11 @@ class OptionTest {
     }
 
     @Nested
-    @DisplayName("재고가 충분할 때")
-    class WhenStockIsSufficient {
+    @DisplayName("decrease(): 재고 감소")
+    class Decrease {
 
         @Test
-        @DisplayName("수량만큼 재고가 줄어든다")
+        @DisplayName("재고보다 적은 수량을 감소시키면 재고가 줄어든다")
         void decreasesQuantityByGivenAmount() {
             // given
             Option option = createOption(10);
@@ -32,7 +44,7 @@ class OptionTest {
         }
 
         @Test
-        @DisplayName("재고와 동일한 수량이면 정확히 0이 된다")
+        @DisplayName("재고와 동일한 수량을 감소시키면 재고가 정확히 0이 된다")
         void decreasesToZeroWhenQuantityEqualsStock() {
             // given
             Option option = createOption(5);
@@ -45,26 +57,8 @@ class OptionTest {
         }
 
         @Test
-        @DisplayName("최소 단위(1)로 감소할 수 있다")
-        void decreasesByOneWhenQuantityIsOne() {
-            // given
-            Option option = createOption(10);
-
-            // when
-            option.decrease(1);
-
-            // then
-            assertThat(option.getQuantity()).isEqualTo(9);
-        }
-    }
-
-    @Nested
-    @DisplayName("재고가 부족할 때")
-    class WhenStockIsInsufficient {
-
-        @Test
-        @DisplayName("재고보다 많은 수량이면 IllegalStateException이 발생한다")
-        void throwsExceptionWhenQuantityExceedsStock() {
+        @DisplayName("재고보다 많은 수량을 감소시키면 IllegalStateException이 발생한다")
+        void throwsIllegalStateExceptionWhenQuantityExceedsStock() {
             // given
             Option option = createOption(3);
 
@@ -74,8 +68,8 @@ class OptionTest {
         }
 
         @Test
-        @DisplayName("재고가 0이면 IllegalStateException이 발생한다")
-        void throwsExceptionWhenStockIsZero() {
+        @DisplayName("재고가 0일 때 감소를 시도하면 IllegalStateException이 발생한다")
+        void throwsIllegalStateExceptionWhenStockIsAlreadyZero() {
             // given
             Option option = createOption(0);
 
@@ -83,14 +77,9 @@ class OptionTest {
             assertThatThrownBy(() -> option.decrease(1))
                     .isInstanceOf(IllegalStateException.class);
         }
-    }
-
-    @Nested
-    @DisplayName("잘못된 입력")
-    class WhenInputIsInvalid {
 
         @Test
-        @DisplayName("수량 0이면 재고가 변하지 않는다")
+        @DisplayName("수량 0으로 감소하면 재고가 변하지 않는다")
         void doesNotChangeStockWhenQuantityIsZero() {
             // given
             Option option = createOption(10);
@@ -103,8 +92,21 @@ class OptionTest {
         }
 
         @Test
-        @DisplayName("음수 수량이면 IllegalArgumentException이 발생한다")
-        void throwsExceptionWhenQuantityIsNegative() {
+        @DisplayName("수량 1로 감소하면 재고가 1 줄어든다 (최소 단위)")
+        void decreasesByOneWhenQuantityIsOne() {
+            // given
+            Option option = createOption(10);
+
+            // when
+            option.decrease(1);
+
+            // then
+            assertThat(option.getQuantity()).isEqualTo(9);
+        }
+
+        @Test
+        @DisplayName("음수 수량으로 감소하면 IllegalArgumentException이 발생한다")
+        void throwsIllegalArgumentExceptionWhenQuantityIsNegative() {
             // given
             Option option = createOption(10);
 

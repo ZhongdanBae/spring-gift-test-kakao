@@ -3,7 +3,10 @@ package gift.ui;
 import gift.application.CreateProductRequest;
 import gift.application.ProductService;
 import gift.model.Product;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -17,7 +20,7 @@ public class ProductRestController {
     }
 
     @PostMapping
-    public Product create(@RequestBody final CreateProductRequest request) {
+    public Product create(final CreateProductRequest request) {
         return productService.create(request);
     }
 
