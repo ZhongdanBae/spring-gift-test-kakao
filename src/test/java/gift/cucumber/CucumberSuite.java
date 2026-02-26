@@ -13,5 +13,5 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 @SelectClasspathResource("features")
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "gift.cucumber")
 @ConfigurationParameter(key = PLUGIN_PROPERTY_NAME, value = "pretty")
-public class CucumberSuiteTest {
+public class CucumberSuite {
 }

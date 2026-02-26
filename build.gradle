@@ -109,7 +109,7 @@ tasks.register('cucumberTest', Test) {
 	classpath = sourceSets.test.runtimeClasspath
 
 	// Cucumber Suite 클래스만 포함
-	include '**/cucumber/CucumberSuiteTest.class'
+	include '**/cucumber/CucumberSuite.class'
 
 	// cucumber 프로필 활성화
 	systemProperty 'spring.profiles.active', 'cucumber'
